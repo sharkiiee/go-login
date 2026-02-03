@@ -19,8 +19,7 @@ func main() {
 		AllowCredentials: true,
 	}))
 
-	routes.SignupRoutes(r)
-	routes.LoginRoutes(r)
-	routes.ProtectedRoutes(r)
+	routes.AdminRoutes(r)
+	routes.UserRoutes(r)
 	r.Run(":7070")
 }

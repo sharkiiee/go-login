@@ -9,13 +9,13 @@ import (
 
 const secretKey = "sarthak123"
 
-func GenerateToken(username string, userID int64) (string, error) {
+func GenerateToken(username string, userID int64, role string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"userID":   userID,
 		"username": username,
+		"role":     role,
 		"exp": time.Now().Add(time.Hour * 2).Unix(),
 	})
-
 	return token.SignedString([]byte(secretKey))
 }
 

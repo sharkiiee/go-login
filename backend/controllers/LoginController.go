@@ -20,11 +20,11 @@ func LoginHandler(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"success": false, "message": "Could not generate token"})
+			"success": false, "message": "Invalid username or password",})
 		return
 	}
 
-	token, err := utils.GenerateToken(user.Username, user.ID)
+	token, err := utils.GenerateToken(user.Username, user.ID, user.Role)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": "Internal Server Error"})
 		return
@@ -36,5 +36,6 @@ func LoginHandler(c *gin.Context) {
 		"message":  "Login Successful",
 		"user_id":  user.ID,
 		"username": user.Username,
+		"role":     user.Role,
 	})
 }

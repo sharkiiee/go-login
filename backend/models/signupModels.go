@@ -9,10 +9,11 @@ type SignupInput struct {
 	ID       int64
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
+	Role string
 }
 
 func (u *SignupInput) Save() error {
-	query := "INSERT INTO users (username, password) VALUES (?, ?)"
+	query := "INSERT INTO users (username, password, role) VALUES (?, ?, ?)"
 
 	stmt, err := database.DB.Prepare(query)
 
@@ -27,7 +28,7 @@ func (u *SignupInput) Save() error {
 		return err
 	}
 
-	result, err := stmt.Exec(u.Username, hashedPassword)
+	result, err := stmt.Exec(u.Username, hashedPassword, u.Role)
 	if err != nil {
 		return err
 	}

@@ -1,18 +1,16 @@
 import { Route, Routes } from "react-router-dom";
-import LoginPage from "./pages/LoginPage";
+import LoginPage from "./pages/UserLoginPage";
 import Dashboard from "./pages/Dashboard";
+import AdminLoginPage from "./pages/AdminLoginPage";
+import AdminDashboard from "./pages/AdminDashboard";
 
-
-export default function App(){
+export default function App() {
   return (
     <Routes>
+      <Route path="/admin" element={<AdminLoginPage />} />
       <Route path="/" element={<LoginPage />} />
-      <Route
-          path="/dashboard"
-          element={
-              <Dashboard />
-          }
-        />
+      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/admin/dashboard" element={<AdminDashboard />} />
     </Routes>
-  )
+  );
 }

@@ -3,7 +3,7 @@ import axios from "axios";
 import goImage from "/go.jpeg";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-export default function LoginPage() {
+export default function UserLoginPage() {
   const usernameRef = useRef(null);
   const passwordRef = useRef(null);
 
@@ -20,6 +20,7 @@ export default function LoginPage() {
         {
           username: username,
           password: password,
+          role:"user"
         },
         {
           headers: {
@@ -67,6 +68,7 @@ export default function LoginPage() {
         {
           username: username,
           password: password,
+          role:"user"
         },
         {
           headers: {

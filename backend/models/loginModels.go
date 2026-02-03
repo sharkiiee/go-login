@@ -10,6 +10,7 @@ type LoginInput struct {
 	ID       int64
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
+	Role string
 }
 
 func (u *LoginInput) ValidateCredentials() error {

@@ -13,16 +13,34 @@ export default function Dashboard() {
   useEffect(() => {
     const token = localStorage.getItem("token");
 
-    if (!token) {
+    if (!token || localStorage.getItem("role") !== "user") {
       navigate("/");
+      return;
     }
+
+    axios
+      .get("http://localhost:7070/verify", {
+      headers: {
+        Authorization: token,
+      },
+      })
+      .then((response) => {
+      console.log("Token verification successful:", response.data);
+      })
+      .catch((error) => {
+      console.error("Token verification failed:", error.response?.data || error.message);
+      localStorage.removeItem("token");
+      navigate("/");
+      });
   }, []);
 
     async function fetchPosts() {
     try {
+      const token = localStorage.getItem("token");
       const response = await axios.get("http://localhost:7070/admin/getposts", {
         headers: {
           "content-type": "application/json",
+          Authorization: token,
         },
       });
       console.log(response);

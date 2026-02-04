@@ -11,12 +11,13 @@ type LoginInput struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
 	Role string
+	OTP string `json:"otp"`
 }
 
 func (u *LoginInput) ValidateCredentials() error {
-	query := "SELECT id, password FROM users WHERE username = ?"
+	query := "SELECT id, password FROM users WHERE username = ? AND role = ?"
 
-	row := database.DB.QueryRow(query, u.Username)
+	row := database.DB.QueryRow(query, u.Username, u.Role)
 
 	var retrievedPassword string
 

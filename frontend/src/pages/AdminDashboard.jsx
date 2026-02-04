@@ -6,6 +6,8 @@ import { Trash2 } from "lucide-react";
 import PostInput from "../components/PostInput";
 import { UserStar } from "lucide-react";
 import { Settings } from "lucide-react";
+import { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 
 export default function AdminDashboard() {
   const [postData, setPostData] = useState([]);
@@ -15,14 +17,39 @@ export default function AdminDashboard() {
   const [sendingFormFunction, setSendingFormFunction] = useState(null);
   const [formtype, setFormtype] = useState("");
 
-  const [editPostData, setEditPostData] = useState([]);
+  const [editPostData, setEditPostData] = useState({
+    id: null,
+    category: null,
+    title: null,
+    description: null,
+    createdBy: null,
+  });
 
   useEffect(() => {
     const token = localStorage.getItem("token");
 
-    if (!token) {
+    if (!token || localStorage.getItem("role") !== "admin") {
       navigate("/admin");
+      return;
     }
+
+    axios
+      .get("http://localhost:7070/admin/verify", {
+        headers: {
+          Authorization: token,
+        },
+      })
+      .then((response) => {
+        console.log("Token verification successful:", response.data);
+      })
+      .catch((error) => {
+        console.error(
+          "Token verification failed:",
+          error.response?.data || error.message,
+        );
+        localStorage.removeItem("token");
+        navigate("/admin");
+      });
   }, []);
 
   const handleLogout = () => {
@@ -32,9 +59,11 @@ export default function AdminDashboard() {
 
   async function fetchPosts() {
     try {
+      const token = localStorage.getItem("token");
       const response = await axios.get("http://localhost:7070/admin/getposts", {
         headers: {
           "content-type": "application/json",
+          Authorization: token,
         },
       });
       console.log(response);
@@ -50,19 +79,21 @@ export default function AdminDashboard() {
   }, []);
 
   function addHander() {
-    setFormtype("Add new")
+    setFormtype("Add new");
     setSendingFormFunction(() => submitPost);
     setIsEditOpen(!isEditOpen);
   }
 
   async function submitPost(postData) {
     try {
+      const token = localStorage.getItem("token");
       const response = await axios.post(
         "http://localhost:7070/admin/addpost",
         postData,
         {
           headers: {
             "content-type": "application/json",
+            Authorization: token,
           },
         },
       );
@@ -76,11 +107,13 @@ export default function AdminDashboard() {
 
   async function deleteHandler(postId) {
     try {
+      const token = localStorage.getItem("token");
       const response = await axios.delete(
         `http://localhost:7070/admin/deletepost`,
         {
           headers: {
             "content-type": "application/json",
+            Authorization: token,
           },
           data: {
             id: postId,
@@ -94,16 +127,50 @@ export default function AdminDashboard() {
     }
   }
 
-  function onEditPostHandler(id) {
+  function onEditPostHandler(id, title, description, createdBy, category) {
+    setEditPostData(() => {
+      return {
+        id: id,
+        title: title,
+        description: description,
+        category: category,
+        createdBy: createdBy,
+      };
+    });
     setFormtype("Edit Post");
-    setSendingFormFunction(() => fetchUpdateData);
+    setSendingFormFunction(() => shareUpdateData);
     setIsEditOpen(() => {
       return !isEditOpen;
     });
   }
 
-  function fetchUpdateData() {
-    // TODO: Implement update functionality
+  async function shareUpdateData(postData) {
+    console.log("inside share update data", postData);
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.put(
+        "http://localhost:7070/admin/updatepost",
+        postData,
+        {
+          headers: {
+            "content-type": "application/json",
+            Authorization: token,
+          },
+        },
+      );
+
+      if (response.data.success) {
+        toast.success(response.data.message || "Post updated successfully");
+      } else {
+        toast.error(response.data.message || "Failed to update post");
+      }
+
+      fetchPosts();
+      setIsEditOpen(false);
+    } catch (error) {
+      console.error("Error updating post:", error);
+      toast.error(error.response?.data?.message || "Error updating post");
+    }
   }
 
   return (
@@ -113,6 +180,8 @@ export default function AdminDashboard() {
           setIsEditOpen={setIsEditOpen}
           getPost={sendingFormFunction}
           formtype={formtype}
+          editPostData={editPostData}
+          setEditPostData={setEditPostData}
         />
       )}
       <div className="w-1/5 bg-black text-white flex flex-col justify-between">
@@ -170,7 +239,6 @@ export default function AdminDashboard() {
                 <div className="flex justify-between w-full">
                   <div className="text-sm">
                     Created BY
-
                     <span className="text-gray-600 uppercase text-xs">
                       {" " + post.createdBy}
                     </span>
@@ -179,7 +247,15 @@ export default function AdminDashboard() {
                     <Pen
                       size={18}
                       className="mt-2 cursor-pointer"
-                      onClick={() => onEditPostHandler(post.id)}
+                      onClick={() =>
+                        onEditPostHandler(
+                          post.id,
+                          post.title,
+                          post.description,
+                          post.createdBy,
+                          post.category,
+                        )
+                      }
                     />
                     <Trash2
                       size={35}

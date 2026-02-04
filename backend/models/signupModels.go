@@ -1,19 +1,34 @@
 package models
 
 import (
+	"crypto/rand"
+	"fmt"
 	"login-backend/database"
 	"login-backend/utils"
+	"math/big"
 )
 
 type SignupInput struct {
 	ID       int64
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
-	Role string
+	Role string `json:"role" binding:"required"`
+	OTP string `json:"otp"`
+}
+
+func GenerateOTP() string {
+	max := big.NewInt(1000000)
+
+	n, err := rand.Int(rand.Reader, max)
+	if err != nil {
+		return ""
+	}	
+
+	return fmt.Sprintf("%06d", n.Int64())
 }
 
 func (u *SignupInput) Save() error {
-	query := "INSERT INTO users (username, password, role) VALUES (?, ?, ?)"
+	query := "INSERT INTO users (username, password, role, otp) VALUES (?, ?, ?, ?)"
 
 	stmt, err := database.DB.Prepare(query)
 
@@ -28,7 +43,9 @@ func (u *SignupInput) Save() error {
 		return err
 	}
 
-	result, err := stmt.Exec(u.Username, hashedPassword, u.Role)
+	u.OTP = GenerateOTP()
+
+	result, err := stmt.Exec(u.Username, hashedPassword, u.Role, u.OTP)
 	if err != nil {
 		return err
 	}

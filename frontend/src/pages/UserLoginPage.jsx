@@ -1,26 +1,49 @@
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import axios from "axios";
 import goImage from "/go.jpeg";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import OtpHandler from "../components/OtpHandler";
+import ForgetPassword from "../components/ForgetPassword";
 export default function UserLoginPage() {
   const usernameRef = useRef(null);
   const passwordRef = useRef(null);
 
+  const [otpInputOpen, setOtpInputOpen] = useState(false);
+  const [forgetInputOpen, setForgetInputOpen] = useState(false);
+  const [isValid, setIsValid] = useState(false);
+  const [loginData, setLoginData] = useState(null);
+  const [otpForLogin, setOtpForLogin] = useState(false);
+
   const navigate = useNavigate();
+
+  // Navigate to dashboard after OTP verification for login
+  useEffect(() => {
+    if (isValid && loginData && otpForLogin) {
+      localStorage.setItem("token", loginData.token);
+      localStorage.setItem("username", loginData.username);
+      localStorage.setItem("role", loginData.role);
+      toast.success("OTP verified! Redirecting...");
+      navigate("/dashboard");
+    }
+  }, [isValid, loginData, otpForLogin, navigate]);
 
   async function onSignButtonHandler(e) {
     e.preventDefault();
     const username = usernameRef.current.value;
     const password = passwordRef.current.value;
 
+    // if (isValid === false) {
+    //   toast.error("Please verify OTP before signing up.");
+    //   return;
+    // }else{
     try {
       const response = await axios.post(
         "http://localhost:7070/signup",
         {
           username: username,
           password: password,
-          role:"user"
+          role: "user",
         },
         {
           headers: {
@@ -53,6 +76,7 @@ export default function UserLoginPage() {
         toast.error("An error occurred. Please try again.");
       }
     }
+    //}
   }
 
   async function onLoginButtonHandler(e) {
@@ -68,7 +92,7 @@ export default function UserLoginPage() {
         {
           username: username,
           password: password,
-          role:"user"
+          role: "user",
         },
         {
           headers: {
@@ -79,11 +103,19 @@ export default function UserLoginPage() {
 
       const data = response.data;
 
+      console.log("Login response data:", data);
+
       if (data.success) {
-        toast.success("Login Successful!");
-        localStorage.setItem("token", response.data.token);
-        navigate("/dashboard");
-        localStorage.setItem("username", response.data.username);
+        toast.success("Login Successful! Please verify OTP.");
+        // Store login data but don't navigate yet
+        setLoginData({
+          token: response.data.token,
+          username: response.data.username,
+          role: response.data.role,
+        });
+        // Open OTP modal for verification
+        setOtpForLogin(true);
+        setOtpInputOpen(true);
       } else {
         toast.error("Login Failed. Please check your credentials.");
       }
@@ -107,6 +139,17 @@ export default function UserLoginPage() {
 
   return (
     <div className="bg-black w-full h-screen text-white flex justify-center items-center gap-4 px-4">
+      {forgetInputOpen && (
+        <ForgetPassword setForgetInputOpen={setForgetInputOpen} />
+      )}
+      {otpInputOpen && (
+        <OtpHandler
+          setOtpInputOpen={setOtpInputOpen}
+          setForgetInputOpen={setForgetInputOpen}
+          setIsValid={setIsValid}
+          isForLogin={otpForLogin}
+        />
+      )}
       <div className="flex flex-col w-1/2 h-4/5  items-center gap-4">
         <div className="flex items-center">
           <img src={goImage} alt="goImage" className="rounded-full h-30 mx-7" />
@@ -175,6 +218,13 @@ export default function UserLoginPage() {
                 Sign Up
               </button>
             </div>
+            <button
+              type="button"
+              className="text-slate-800 hover:text-slate-700 hover:underline text-sm font-medium transition-colors mt-2"
+              onClick={() => setOtpInputOpen(true)}
+            >
+              Forget Password ?
+            </button>
           </form>
         </div>
       </div>

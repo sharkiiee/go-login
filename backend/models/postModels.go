@@ -3,18 +3,20 @@ package models
 import (
 	"errors"
 	"login-backend/database"
+	"time"
 )
 
 type Post struct {
-	ID          int64  `json:"id"`
-	Category    string `json:"category" binding:"required"`
-	Title       string `json:"title" binding:"required"`
-	Description string `json:"description"`
-	CreatedBy   string `json:"createdBy"`
+	ID          int64      `json:"id"`
+	Category    string     `json:"category" binding:"required"`
+	Title       string     `json:"title" binding:"required"`
+	Description string     `json:"description"`
+	CreatedBy   string     `json:"createdBy"`
+	DeletedAt   *time.Time `json:"deletedat,omitempty"`
 }
 
 func GetAllPosts() ([]Post, error) {
-	query := "SELECT id, category, title, description, createdby FROM post"
+	query := "SELECT id, category, title, description, createdby FROM post WHERE deletedat IS NULL"
 
 	rows, err := database.DB.Query(query)
 	if err != nil {
@@ -94,7 +96,7 @@ func (p *Post) Update() error {
 }
 
 func DeletePost(id int64) error {
-	query := "DELETE FROM post WHERE id = ?"
+	query := "UPDATE post SET deletedat = ? WHERE id = ? AND deletedat IS NULL"
 
 	stmt, err := database.DB.Prepare(query)
 	if err != nil {
@@ -103,7 +105,8 @@ func DeletePost(id int64) error {
 
 	defer stmt.Close()
 
-	result, err := stmt.Exec(id)
+	currentTime := time.Now()
+	result, err := stmt.Exec(currentTime, id)
 	if err != nil {
 		return errors.New("Failed to execute delete query")
 	}
@@ -114,7 +117,7 @@ func DeletePost(id int64) error {
 	}
 
 	if rowsAffected == 0 {
-		return errors.New("Post not found")
+		return errors.New("Post not found or already deleted")
 	}
 
 	return nil

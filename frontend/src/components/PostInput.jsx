@@ -1,8 +1,12 @@
-import { useState } from "react";
 import { X } from "lucide-react";
 import { useRef } from "react";
-export default function PostInput({ setIsEditOpen, getPost, formtype }) {
-
+export default function PostInput({
+  setIsEditOpen,
+  getPost,
+  formtype,
+  editPostData,
+  setEditPostData,
+}) {
   const titleRef = useRef(null);
   const categoryRef = useRef(null);
   const contentRef = useRef(null);
@@ -20,11 +24,20 @@ export default function PostInput({ setIsEditOpen, getPost, formtype }) {
     const createdBy = createdbyRef.current.value;
 
     const postData = {
+      ...(editPostData?.id && { id: editPostData.id }),
       title,
       category,
       description,
       createdBy,
     };
+
+    setEditPostData({
+      id: null,
+      category: null,
+      title: null,
+      description: null,
+      createdBy: null,
+    });
 
     getPost(postData);
   }
@@ -34,9 +47,7 @@ export default function PostInput({ setIsEditOpen, getPost, formtype }) {
       <div className="bg-white p-6 rounded-xl shadow-md w-3/4 lg:w-2/4 space-y-4 px-8">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className=" text-2xl font-bold capitalize">
-              {formtype}
-            </h1>
+            <h1 className=" text-2xl font-bold capitalize">{formtype}</h1>
             <p className="first-letter:uppercase text-sm text-gray-700">
               Enter post details
             </p>
@@ -48,7 +59,7 @@ export default function PostInput({ setIsEditOpen, getPost, formtype }) {
           />
         </div>
         {/* Form for the data */}
-        <form action="">
+        <form onSubmit={onaddPostHandler}>
           <div className="grid gap-6">
             <div>
               <label htmlFor="title" className="font-medium">
@@ -59,6 +70,7 @@ export default function PostInput({ setIsEditOpen, getPost, formtype }) {
                 type="text"
                 id="title"
                 ref={titleRef}
+                defaultValue={editPostData?.title || ""}
                 className={inputStyle}
                 placeholder="Enter Post Title"
                 required
@@ -74,6 +86,7 @@ export default function PostInput({ setIsEditOpen, getPost, formtype }) {
                 name="category"
                 id="category"
                 ref={categoryRef}
+                defaultValue={editPostData?.category || ""}
                 className="w-full border border-gray-300 rounded px-3 py-2 mt-1 focus:outline-none focus:ring-1 focus:ring-red-400 text-gray-700 font-light"
                 required
               >
@@ -107,6 +120,7 @@ export default function PostInput({ setIsEditOpen, getPost, formtype }) {
                 id="content"
                 rows="6"
                 ref={contentRef}
+                defaultValue={editPostData?.description || ""}
                 className={inputStyle}
                 placeholder="Enter Post Content"
                 required
@@ -122,6 +136,7 @@ export default function PostInput({ setIsEditOpen, getPost, formtype }) {
                 type="text"
                 id="createdby"
                 ref={createdbyRef}
+                defaultValue={editPostData?.createdBy || ""}
                 className={inputStyle}
                 placeholder="Enter tags separated by commas"
                 required
@@ -130,12 +145,12 @@ export default function PostInput({ setIsEditOpen, getPost, formtype }) {
           </div>
 
           <div className="col-span-2 flex justify-end">
-            <input
+            <button
               type="submit"
               className="mt-4 bg-slate-950 hover:bg-slate-800 text-white font-medium px-6 py-2 rounded transition-colors"
-              onClick={onaddPostHandler}
-              value="Publish Post"
-            />
+            >
+              Publish Post
+            </button>
           </div>
         </form>
       </div>

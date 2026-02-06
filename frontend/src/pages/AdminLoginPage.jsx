@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import OtpHandler from "../components/OtpHandler";
 import ForgetPassword from "../components/ForgetPassword";
+import SendOtp from "../components/SendOtp";
 
 export default function AdminLoginPage() {
   const usernameRef = useRef(null);
@@ -15,16 +16,15 @@ export default function AdminLoginPage() {
   const [isValid, setIsValid] = useState(false);
   const [loginData, setLoginData] = useState(null);
   const [otpForLogin, setOtpForLogin] = useState(false);
+  const [otpSendInputOpen, setOtpSendInputOpen] = useState(false);
 
   const navigate = useNavigate();
 
-  // Navigate to dashboard after OTP verification for login
   useEffect(() => {
     if (isValid && loginData && otpForLogin) {
       localStorage.setItem("token", loginData.token);
       localStorage.setItem("username", loginData.username);
       localStorage.setItem("role", loginData.role);
-      toast.success("OTP verified! Redirecting...");
       navigate("/admin/dashboard");
     }
   }, [isValid, loginData, otpForLogin, navigate]);
@@ -56,15 +56,13 @@ export default function AdminLoginPage() {
       if (data.success) {
         toast.success("Login Successful! Please verify OTP.");
         console.log("Login response data:", data);
-        // Store login data but don't navigate yet
         setLoginData({
           token: response.data.token,
           username: response.data.username,
           role: response.data.role,
         });
-        // Open OTP modal for verification
         setOtpForLogin(true);
-        setOtpInputOpen(true);
+        setOtpSendInputOpen(true);
       } else {
         toast.error("Login Failed. Please check your credentials.");
       }
@@ -88,6 +86,12 @@ export default function AdminLoginPage() {
 
   return (
     <div className=" bg-black border">
+      {otpSendInputOpen && (
+        <SendOtp
+          setOtpSendInputOpen={setOtpSendInputOpen}
+          setOtpInputOpen={setOtpInputOpen}
+        />
+      )}
       {forgetInputOpen && (
         <ForgetPassword setForgetInputOpen={setForgetInputOpen} />
       )}
@@ -159,7 +163,7 @@ export default function AdminLoginPage() {
               <button
                 type="button"
                 className="text-slate-800 hover:text-slate-700 hover:underline text-sm font-medium transition-colors mt-2"
-                onClick={() => setOtpInputOpen(true)}
+                onClick={() => setOtpSendInputOpen(true)}
               >
                 Forget Password ?
               </button>

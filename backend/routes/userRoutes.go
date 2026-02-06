@@ -15,5 +15,6 @@ func UserRoutes(server *gin.Engine) {
 		user.POST("/verifyotp", controllers.OtpController)
 		user.POST("/forget-password", controllers.ForgetPasswordController)
 		user.GET("/verify", middlewares.AuthMiddleware, controllers.DashboardHandler)
+		user.POST("/sendotp", controllers.SendOtpController)
 	}
 }

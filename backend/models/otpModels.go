@@ -5,6 +5,7 @@ import (
 	"errors"
 	"login-backend/database"
 	"login-backend/utils"
+	"time"
 )
 
 type OTPData struct {
@@ -17,10 +18,11 @@ func VerifyOTP(username string, otp string) (bool, error) {
 		return false, errors.New("username and OTP are required")
 	}
 
-	query := "SELECT otp FROM users WHERE username = ?"
+	query := "SELECT otp, expireOtp FROM users WHERE username = ?"
 
 	var storedOTP string
-	err := database.DB.QueryRow(query, username).Scan(&storedOTP)
+	var expireTimeStr sql.NullString
+	err := database.DB.QueryRow(query, username).Scan(&storedOTP, &expireTimeStr)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -33,10 +35,22 @@ func VerifyOTP(username string, otp string) (bool, error) {
 		return false, nil
 	}
 
+	if !expireTimeStr.Valid {
+		return false, errors.New("OTP expiration time not set")
+	}
+
+	expireTime, err := time.Parse("2006-01-02 15:04:05", expireTimeStr.String)
+	if err != nil {
+		return false, errors.New("Invalid OTP expiration time format")
+	}
+
+	if expireTime.Before(time.Now()) {
+		return false, errors.New("OTP has expired")
+	}
+
 	return true, nil
 }
 
-// UpdatePassword updates the password for a user
 func UpdatePassword(username string, newPassword string) error {
 	if username == "" || newPassword == "" {
 		return errors.New("username and password are required")

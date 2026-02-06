@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import OtpHandler from "../components/OtpHandler";
 import ForgetPassword from "../components/ForgetPassword";
+import SendOtp from "../components/SendOtp";
 export default function UserLoginPage() {
   const usernameRef = useRef(null);
   const passwordRef = useRef(null);
@@ -14,16 +15,15 @@ export default function UserLoginPage() {
   const [isValid, setIsValid] = useState(false);
   const [loginData, setLoginData] = useState(null);
   const [otpForLogin, setOtpForLogin] = useState(false);
+  const [otpSendInputOpen, setOtpSendInputOpen] = useState(false);
 
   const navigate = useNavigate();
 
-  // Navigate to dashboard after OTP verification for login
   useEffect(() => {
     if (isValid && loginData && otpForLogin) {
-      localStorage.setItem("token", loginData.token);
+      localStorage.setItem("token",loginData.token);
       localStorage.setItem("username", loginData.username);
       localStorage.setItem("role", loginData.role);
-      toast.success("OTP verified! Redirecting...");
       navigate("/dashboard");
     }
   }, [isValid, loginData, otpForLogin, navigate]);
@@ -32,11 +32,7 @@ export default function UserLoginPage() {
     e.preventDefault();
     const username = usernameRef.current.value;
     const password = passwordRef.current.value;
-
-    // if (isValid === false) {
-    //   toast.error("Please verify OTP before signing up.");
-    //   return;
-    // }else{
+    
     try {
       const response = await axios.post(
         "http://localhost:7070/signup",
@@ -76,7 +72,6 @@ export default function UserLoginPage() {
         toast.error("An error occurred. Please try again.");
       }
     }
-    //}
   }
 
   async function onLoginButtonHandler(e) {
@@ -107,15 +102,13 @@ export default function UserLoginPage() {
 
       if (data.success) {
         toast.success("Login Successful! Please verify OTP.");
-        // Store login data but don't navigate yet
         setLoginData({
           token: response.data.token,
           username: response.data.username,
           role: response.data.role,
         });
-        // Open OTP modal for verification
         setOtpForLogin(true);
-        setOtpInputOpen(true);
+        setOtpSendInputOpen(true);
       } else {
         toast.error("Login Failed. Please check your credentials.");
       }
@@ -139,6 +132,11 @@ export default function UserLoginPage() {
 
   return (
     <div className="bg-black w-full h-screen text-white flex justify-center items-center gap-4 px-4">
+      {
+        otpSendInputOpen && (
+          <SendOtp setOtpSendInputOpen={setOtpSendInputOpen} setOtpInputOpen={setOtpInputOpen} />
+        )
+      }
       {forgetInputOpen && (
         <ForgetPassword setForgetInputOpen={setForgetInputOpen} />
       )}
@@ -221,7 +219,7 @@ export default function UserLoginPage() {
             <button
               type="button"
               className="text-slate-800 hover:text-slate-700 hover:underline text-sm font-medium transition-colors mt-2"
-              onClick={() => setOtpInputOpen(true)}
+              onClick={() => setOtpSendInputOpen(true)}
             >
               Forget Password ?
             </button>

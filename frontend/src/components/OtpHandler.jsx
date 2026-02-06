@@ -44,10 +44,8 @@ export default function OtpHandler({
         setOtpInputOpen(false);
 
         if (isForLogin) {
-          // For login flow: just set isValid to trigger navigation
           setIsValid(true);
         } else {
-          // For forget password flow: open ForgetPassword modal
           setForgetInputOpen(true);
         }
       } else {
@@ -67,13 +65,17 @@ export default function OtpHandler({
     <div className="fixed w-full h-screen top-0 left-0 flex items-center justify-center bg-[rgba(0,0,0,0.5)] backdrop-blur-sm z-50">
       <div className="bg-white p-6 rounded-xl shadow-lg w-[90%] sm:w-3/4 md:w-1/2 lg:w-1/3 xl:w-1/4 space-y-4">
         <div className="flex items-center justify-between border-b pb-3">
-          <h2 className="text-xl font-semibold text-gray-800">Verification</h2>
+          <div>
+            <h2 className="text-xl font-semibold text-gray-800">Verification</h2>
+          <div className="text-sm text-gray-600">Your otp will expire in 10 minutes</div>
+          </div>
           <X
             className="cursor-pointer hover:bg-gray-100 rounded transition-colors p-1 text-gray-500 hover:text-gray-800"
             onClick={() => setOtpInputOpen(false)}
             size={24}
           />
         </div>
+        
         <form className="space-y-4" onSubmit={onVerifySubmit}>
           <div>
             <label

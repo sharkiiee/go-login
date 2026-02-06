@@ -4,21 +4,20 @@ import (
 	"fmt"
 	"login-backend/models"
 	"net/http"
-
 	"github.com/gin-gonic/gin"
 )
 
 func ForgetPasswordController(c *gin.Context) {
 	var input struct {
 		Username    string `json:"username" binding:"required"`
-		NewPassword string `json:"newPassword" binding:"required"`
+		NewPassword string `json:"newPassword" binding:"required,min=8"`
 	}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
 		fmt.Println("Binding error:", err)
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
-			"message": "Invalid input: username and new password are required",
+			"message": "Invalid input: username and new password are required and new password must be at least 8 characters long",
 		})
 		return
 	}
